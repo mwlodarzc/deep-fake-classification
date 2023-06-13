@@ -59,6 +59,14 @@ batch_size = 20
 train_generator = FFHQ_mixed(np.load(f'{ABS_PATH}/X_train_filenames.npy'), np.load(f'{ABS_PATH}/y_train.npy'), batch_size)
 val_generator = FFHQ_mixed(np.load(f'{ABS_PATH}/X_val_filenames.npy'), np.load(f'{ABS_PATH}/y_val.npy'), batch_size)
 
+
+
+class ValAcc99Callback(keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        if logs.get('val_accuracy') > 0.993:
+            print("\nReached 0.99 accuracy. Stopping training.")
+            self.model.stop_training = True
+
 # image_arr, label_arr = train_generator.__getitem__(1)
 # print(np.shape(image_arr))
 # print(np.shape(label_arr))
@@ -77,25 +85,30 @@ val_generator = FFHQ_mixed(np.load(f'{ABS_PATH}/X_val_filenames.npy'), np.load(f
 # plt.show()
 
 
-callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=6)
 
 network = Sequential()
-# network.add(layers.Flatten(input_shape=(512,512)))
-network.add(Conv2D(16, (2,2),strides=(2,2), activation='relu', input_shape=(1024,1024,3))) # 512x512x16  
-network.add(Conv2D(32, (10,10),strides=(2,2), activation='relu')) # 252x252x32  
-network.add(MaxPooling2D(pool_size=(2, 2),strides=(2,2))) # 126x126x32
-network.add(Conv2D(64, (6,6), strides=(2,2) ,activation='relu')) # 61x61x64
-network.add(MaxPooling2D(pool_size=(3, 3),strides=(2,2))) # 30x30x64
-network.add(Conv2D(128, (3, 3),padding='same', activation='relu')) #30x30x128
-network.add(Conv2D(256, (3, 3), activation='relu')) #28x28x256
-network.add(Conv2D(256, (2, 2),strides=(2,2), activation='relu')) #14x14x512
-network.add(MaxPooling2D(pool_size=(2, 2),strides=(2,2))) # 6x6x512
+network.add(Conv2D(16, (2,2), strides=(2,2), activation='relu', input_shape=(1024,1024,3)))
+network.add(Conv2D(32, (10,10), strides=(2,2), activation='relu'))
+network.add(MaxPooling2D(pool_size=(2,2), strides=(2,2)))
+network.add(Conv2D(64, (6,6), strides=(2,2), activation='relu'))
+network.add(MaxPooling2D(pool_size=(3,3), strides=(2,2)))
+network.add(Conv2D(128, (3,3), padding='same',activation='relu'))
+network.add(Conv2D(256, (3,3),activation='relu'))
+network.add(Conv2D(256, (2,2), strides=(2,2),activation='relu'))
+network.add(MaxPooling2D(pool_size=(2,2), strides=(2,2)))
 network.add(Flatten())
 network.add(Dense(1000, activation='relu'))
+network.add(Dropout(0.5))
 network.add(Dense(500, activation='relu'))
+network.add(Dropout(0.5))
 network.add(Dense(500, activation='relu'))
+network.add(Dropout(0.5))
 network.add(Dense(100, activation='relu'))
 network.add(Dense(1, activation='sigmoid'))
+
+
+
+
 
 network.compile(optimizer='rmsprop',
                     loss='binary_crossentropy',
@@ -103,14 +116,14 @@ network.compile(optimizer='rmsprop',
 
 history = network.fit_generator(
   generator = train_generator,
-  steps_per_epoch=20,
+  steps_per_epoch=10,
   epochs=300,
-  # callbacks=[callback],
-  validation_steps=10,
+  callbacks=[ValAcc99Callback()],
+  validation_steps=20,
   validation_data=val_generator
 )
 network.save(f'.\{ABS_PATH}\\ffhq_mix_p')
-# print(np.shape(history.history))
+np.save('my_history.npy',history.history)
 
 print(f"Training accuracy: {history.history['accuracy']}")
 print(f"Training loss: {history.history['loss']}")
