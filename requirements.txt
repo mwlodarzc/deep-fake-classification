@@ -1,4 +1,6 @@
 tensorflow
-keras
+keras==2.12.0
 matplotlib
 sklearn
+flask
+opencv-python
