@@ -5,7 +5,7 @@ from PIL import Image
 import numpy as np
 import cv2
 import os
-model = load_model('./models/maximal_99.5p_net/model.h5')
+model = load_model('./models/face_auth_99.5p_dropout.h5')
 
 app = Flask(__name__)
 
