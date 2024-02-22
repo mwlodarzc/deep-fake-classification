@@ -1,5 +1,5 @@
 #   [Fake Face Image Classification using Deep Learning](link)
-
+Made by [Paulina Graczyk](https://gitlab.com/paulina_g1) and [Michał Włodarczyk](https://github.com/mwlodarzc/)
 
 ##  1. Introduction
 The Face Authentication project aims to develop an effective solution for differentiating between generated images produced by a Generative Adversarial Network (GAN) model and real photographs. The n project utilizes convolutional neural networks (CNNs) implemented in the Keras library to classify images as either real or generated. This technology has potential applications in privacy protection, image manipulation detection, and authenticity verification tools.
